@@ -1,6 +1,11 @@
 const ObjectId = require('mongodb').ObjectId
 
 module.exports = (app, db) => {
+  app.get('/notes', async (req, res) => {
+    const notesCollection = db.collection('notes');
+    const notes = await notesCollection.find(async (err, result) => await result.toArray())
+    res.send(notes)
+  })
   // Post a note
   app.post('/notes', (req, res) => {
     const notes = db.collection('notes')
@@ -27,28 +32,28 @@ module.exports = (app, db) => {
     })
   })
 
-  app.delete('/notes/:id', (req, res) => {
+  app.put('/notes/:id', (req, res) => {
     const id = req.params.id
+    const note = { body: req.body.body, title: req.body.title }
     const details = { _id: new ObjectId(id) }
     const notes = db.collection('notes')
-    notes.remove(details, (err, item) => {
+    console.log(note);
+    notes.update(details, note, (err, result) => {
       if (!err) {
-        res.send(`Item with id ${id} was deleted.`)
+        res.send(Object.assign({}, note, { id }))
       } else {
         res.send({ msg: 'An error has occured.', error: err })
       }
     })
   })
 
-  app.put('/notes/:id', (req, res) => {
+  app.delete('/notes/:id', (req, res) => {
     const id = req.params.id
-    const note = { body: req.body.body, title: req.body.title }
     const details = { _id: new ObjectId(id) }
     const notes = db.collection('notes')
-    notes.update(details, note, (err, result) => {
+    notes.remove(details, (err, item) => {
       if (!err) {
-        debugger
-        res.send(Object.assign({}, note, { id }))
+        res.send({ msg: `Note with id ${id} was deleted.`, deleted: [id]})
       } else {
         res.send({ msg: 'An error has occured.', error: err })
       }

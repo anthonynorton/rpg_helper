@@ -62,3 +62,5 @@ typings/
 
 # Private data
 keys.js
+
+/client
